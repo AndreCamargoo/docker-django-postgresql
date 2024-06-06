@@ -109,6 +109,12 @@ Django
 psycopg2-binary
 ~~~
 
+<p>Go back to the project root again</p>
+
+~~~bash
+cd ..
+~~~
+
 ### 6. Environment variables
 
 <p>Let's create a folder in the root of the project called dotenv_files to be used by <b>settings.py</b></p>
@@ -118,6 +124,7 @@ mkdir dotenv_files
 ~~~
 
 <p>Navigate to the folder and we will create a .env-example file</p>
+<p>This file will serve as a base to start the project, you can share this project with your team or friends!</p>
 
 ~~~bash
 cd dotenv_files
@@ -293,11 +300,10 @@ USER duser
 CMD ["commands.sh"]
 ```
 
-<p>We need to create a scripts folder in the project root and a file inside the comments.sh folder that will be used by the Dockerfile to execute sh commands</p>
+<p>We need to create a scripts folder in the project root and a file inside the commands.sh folder that will be used by the Dockerfile to execute sh commands</p>
 
 ~~~bash
-mkdir scripts
-cd scripts
+mkdir scripts && cd scripts
 ~~~
 
 ```
@@ -401,7 +407,7 @@ http://localhost:8000/
 http://127.0.0.1:8000/
 ```
 
-### 10. Useful commands
+### 11. Useful commands
 
 ~~~bash
 docker-compose run djangoapp python manage.py startproject project .
@@ -440,3 +446,266 @@ python -V
 which python
 ~~~
 
+### 12. Files to ignore if using git
+
+<p>At the root of the project we will create some files that are useful in everyday life</p>
+
+- .vscode
+- .dockerignore
+- .gitignore
+
+#### .VSCODE
+
+~~~bash
+mkdir .vscode && cd .vscode
+~~~
+
+<p>Create file settings.json</p>
+
+```
+cat > settings.json 
+{
+    "window.zoomLevel": 2,
+    "editor.fontSize": 24,
+    "editor.hover.enabled": true,
+    "workbench.startupEditor": "none",
+    "explorer.compactFolders": false,
+    "terminal.integrated.fontSize": 24,
+    "editor.rulers": [
+        80,
+        120
+    ],
+    "workbench.colorTheme": "OM Theme (Default Dracula Italic)",
+    "workbench.iconTheme": "material-icon-theme",
+    "code-runner.executorMap": {
+        "python": "clear ; python -u"
+    },
+    "code-runner.runInTerminal": true,
+    "code-runner.ignoreSelection": true,
+    "editor.fontFamily": "'Fira Code', Consolas, 'Dank Mono', 'Source Code Pro', 'Fira Code', Menlo, 'Inconsolata', 'Droid Sans Mono', 'DejaVu Sans Mono', 'Ubuntu Mono', 'Courier New', Courier, Monaco, monospace",
+    "terminal.integrated.fontFamily": "",
+    "editor.fontLigatures": false,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true,
+            "source.fixAll.unusedImports": true,
+            "source.organizeImports": true
+        }
+    },
+    "python.languageServer": "Pylance",
+    "python.formatting.autopep8Args": [
+        "--indent-size=4",
+        "--max-line-length=80"
+        // "--ignore=E111"
+    ],
+    "python.linting.flake8Args": [
+        // "--ignore=E111",
+    ],
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportUnknownMemberType": "none",
+        "reportUnknownArgumentType": "none",
+        "reportUnknownVariableType": "none",
+        "reportUnknownLambdaType": "none",
+        "reportUnknownParameterType": "none"
+    },
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.analysis.typeCheckingMode": "basic",
+    "cSpell.enabled": true,
+    "python.formatting.provider": "none"
+}
+```
+
+#### .DOCKERIGNORE
+
+~~~bash
+cd ..
+~~~
+
+<p>Create file .dockerignore</p>
+
+```
+cat > .dockerignore
+*.pyc
+*.pyo
+*.mo
+*.db
+*.css.map
+*.egg-info
+*.sql.gz
+.cache
+.project
+.idea
+.pydevproject
+.idea/workspace.xml
+.DS_Store
+.git/
+.sass-cache
+.vagrant/
+__pycache__
+dist
+docs
+env
+logs
+stats
+Dockerfile
+__localcode/
+``` 
+
+#### .GITIGNORE
+
+<p>Create file .gitignore</p>
+
+```
+cat > .gitignore
+/djangoapp/static/
+/djangoapp/media/
+/djangoapp/project/local_settings.py
+gunicorn-error-log
+__localcode
+/data/
+
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+
+# Backup files #
+*.bak
+
+# If you are using PyCharm #
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# AWS User-specific
+.idea/**/aws.xml
+
+# Generated files
+.idea/**/contentModel.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Gradle
+.idea/**/gradle.xml
+.idea/**/libraries
+
+# File-based project format
+*.iws
+
+# IntelliJ
+out/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Python #
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery
+celerybeat-schedule.*
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+# Sublime Text #
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# sftp configuration file
+sftp-config.json
+
+# Package control specific files Package
+Control.last-run
+Control.ca-list
+Control.ca-bundle
+Control.system-ca-bundle
+GitHub.sublime-settings
+
+# Visual Studio Code #
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+```
