@@ -6,13 +6,13 @@
 
 ## Starting the project
 
-### 1. Clone the project
+### 1. You copy the entire project or follow the steps below
 
 ~~~bash
 git clone git@github.com:AndreCamargoo/docker-django-postgresql.git
 ~~~
 
-### 2. Virtual environment
+### 2. Create a folder and let's create a virtual environment
 
 <p>
 Just so the editor doesn't complain that nothing is installed, the virtual environment itself will be inside the container. <br>
@@ -56,6 +56,12 @@ pip install django
 ~~~
 
 ### 4. Starting a Django project
+
+<p>Create djangoapp folder in the root of your project</p>
+
+~~~bash
+mkdir djangoapp
+~~~
 
 <p>Navigate into the djangoapp folder</p>
 
@@ -105,12 +111,38 @@ psycopg2-binary
 
 ### 6. Environment variables
 
-<p>Note that there is a folder called dotenv_files, you must create a <b>.env</b> to be used by <b>settings.py</b><br> 
-There is an example to be copied and then modified with your credentials.</p>
+<p>Let's create a folder in the root of the project called dotenv_files to be used by <b>settings.py</b></p>
+
+~~~bash
+mkdir dotenv_files
+~~~
+
+<p>Navigate to the folder and we will create a .env-example file</p>
 
 ~~~bash
 cd dotenv_files
 ~~~
+
+```
+cat > .env-example
+SECRET_KEY="CHANGE-ME"
+
+# 0 False, 1 True
+DEBUG="1"
+
+# Comma Separated values
+ALLOWED_HOSTS="127.0.0.1, localhost"
+
+DB_ENGINE="django.db.backends.postgresql"
+POSTGRES_DB="CHANGE-ME"
+POSTGRES_USER="CHANGE-ME"
+POSTGRES_PASSWORD="CHANGE-ME"
+POSTGRES_HOST="psql"
+POSTGRES_PORT="5432"
+
+LANGUAGE_CODE="CHANGE-ME"
+TIME_ZONE="CHANGE-ME"
+```
 
 <p>Creating a copy of <b>.env-example</b> and renaming it to <b>.env</b></p>
 
@@ -148,7 +180,6 @@ nano settings.py
 
 <p>Steps to be edited or added:<br> 
 <b>📢 Alert:</b> when there is a <b style="color:green">></b> character, it must be replaced</p>
-
 
 - import os
 - SECRET_KEY = 'django-insecure...' <b style="color:green">></b> SECRET_KEY = os.getenv('SECRET_KEY', 'change-me')
@@ -203,6 +234,134 @@ if settings.DEBUG:
 
 ### 9. Build Image
 
+<p>Let's create a Dockerfile at the root of the project</p>
+
+```
+cat > Dockerfile 
+FROM python:3.11.3-alpine3.18
+LABEL mantainer="andre.camargo@msn.com"
+
+# Essa variável de ambiente é usada para controlar se o Python deve 
+# gravar arquivos de bytecode (.pyc) no disco. 1 = Não, 0 = Sim
+ENV PYTHONDONTWRITEBYTECODE 1
+
+# Define que a saída do Python será exibida imediatamente no console ou em 
+# outros dispositivos de saída, sem ser armazenada em buffer.
+# Em resumo, você verá os outputs do Python em tempo real.
+ENV PYTHONUNBUFFERED 1
+
+# Copia a pasta "djangoapp" e "scripts" para dentro do container.
+COPY djangoapp /djangoapp
+COPY scripts /scripts
+
+# Entra na pasta djangoapp no container (trabalhar com essa pasta)
+WORKDIR /djangoapp
+
+# A porta 8000 estará disponível para conexões externas ao container
+# É a porta que vamos usar para o Django.
+EXPOSE 8000
+
+# RUN executa comandos em um shell dentro do container para construir a imagem. 
+# O resultado da execução do comando é armazenado no sistema de arquivos da 
+# imagem como uma nova camada.
+# Agrupar os comandos em um único RUN pode reduzir a quantidade de camadas da 
+# imagem e torná-la mais eficiente.
+RUN python -m venv /venv && \
+  /venv/bin/pip install --upgrade pip && \
+  /venv/bin/pip install -r /djangoapp/requirements.txt && \
+  adduser --disabled-password --no-create-home duser && \
+  mkdir -p /data/web/static && \
+  mkdir -p /data/web/staticfiles && \
+  mkdir -p /data/web/media && \
+  chown -R duser:duser /venv && \
+  chown -R duser:duser /data/web/static && \
+  chown -R duser:duser /data/web/staticfiles && \
+  chown -R duser:duser /data/web/media && \
+  chmod -R 755 /data/web/static && \
+  chmod -R 755 /data/web/staticfiles && \
+  chmod -R 755 /data/web/media && \
+  chmod -R +x /scripts
+
+# Adiciona a pasta scripts e venv/bin 
+# no $PATH do container.
+ENV PATH="/scripts:/venv/bin:$PATH"
+
+# Muda o usuário para duser
+USER duser
+
+# Executa o arquivo scripts/commands.sh
+CMD ["commands.sh"]
+```
+
+<p>We need to create a scripts folder in the project root and a file inside the comments.sh folder that will be used by the Dockerfile to execute sh commands</p>
+
+~~~bash
+mkdir scripts
+cd scripts
+~~~
+
+```
+cat > commands.sh
+#!/bin/sh
+
+# O shell irá encerrar a execução do script quando um comando falhar
+set -e
+
+while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
+  echo "🟡 Waiting for Postgres Database Startup ($POSTGRES_HOST $POSTGRES_PORT) ..."
+  sleep 2
+done
+
+echo "✅ Postgres Database Started Successfully ($POSTGRES_HOST:$POSTGRES_PORT)"
+
+python manage.py collectstatic --noinput
+python manage.py makemigrations --noinput
+python manage.py migrate --noinput
+python manage.py runserver 0.0.0.0:8000 
+```
+
+<p>Now let's create docker-compose.yml in the project root</p>
+
+~~~bash
+cd ..
+~~~
+
+```
+cat > docker-compose.yml
+version: '3.9'
+
+services:
+  djangoapp:
+    container_name: djangoapp
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - ./djangoapp:/djangoapp
+      - ./data/web/static:/data/web/static/
+      - ./data/web/media:/data/web/media/
+    env_file:
+      - ./dotenv_files/.env
+    depends_on:
+      - psql
+  psql:
+    container_name: psql
+    image: postgres:13-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres/data:/var/lib/postgresql/data/
+    env_file:
+      - ./dotenv_files/.env
+volumes:
+  psql:
+    driver: local
+```
+
+### 10. Build Image
+
 <p>Make sure docker is active <br>
 Let's build the image for the first time!
 </p>
@@ -223,7 +382,7 @@ docker-compose up --build --force-recreate
 docker-compose up
 ~~~
 
-<p>Ou</p>
+<p>Or</p>
 
 ~~~bash
 docker-compose up -d
