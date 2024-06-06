@@ -407,6 +407,49 @@ http://localhost:8000/
 http://127.0.0.1:8000/
 ```
 
+<p><b>Alert:</b> If you ran the application and it generated an error like:</p>
+
+```
+Page not found (404)
+    Request Method:	GET
+        Request URL:	http://localhost:8000/
+
+Using the URLconf defined in project.urls, Django tried these URL patterns, in this order:
+
+    1.admin/
+    2.^media/(?P<path>.*)$
+The empty path didn’t match any of these.
+
+You’re seeing this error because you have DEBUG = True in your Django settings file. Change that to False, and Django will display a standard 404 page.
+```
+
+<p>Just comment out the lines in your urls file</p>
+
+```
+"""
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
+"""
+```
+
+<p>After you create an app and include it in your routes, you can return the lines to use averages. ex:</p>
+
+```
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('chat.urls')),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
+```    
+
 ### 11. Useful commands
 
 ~~~bash
