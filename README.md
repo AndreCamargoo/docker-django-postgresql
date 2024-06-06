@@ -239,7 +239,7 @@ if settings.DEBUG:
     )
 ```
 
-### 9. Build Image
+### 9. Create DockerFile, docker-compose and commands sh
 
 <p>Let's create a Dockerfile at the root of the project</p>
 
